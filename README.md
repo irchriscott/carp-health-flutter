@@ -215,9 +215,12 @@ Below is a simplified flow of how to use the plugin.
 5. Call `finishWorkoutRoute(builderId: builderId, workoutUuid: workoutUuid, metadata: {...})` to commit the route, or `discardWorkoutRoute(builderId)` if the session is cancelled.
 
 > **Health Connect note:** Android only surfaces routes while your app is in the foreground, and
-> other apps' routes may return a `ConsentRequired` flag. When that happens, prompt the user to
-> grant access via the Health Connect UI before retrying the read. Also remember to declare
-> both `<uses-permission android:name="android.permission.health.READ_EXERCISE_ROUTE"/>` (or
+> other apps' routes may return a `ConsentRequired` flag. Today (Health Connect 1.1.0) the system
+> does **not** expose the `ExerciseRouteRequestContract` documented by Google, so the only way to
+> read third-party routes is to have the user manually grant “Always allow” for *Exercise routes*
+> inside the Health Connect app (`Health Connect → App permissions → Your app → Exercise routes`).
+> Also remember to declare both
+> `<uses-permission android:name="android.permission.health.READ_EXERCISE_ROUTE"/>` (or
 > `...READ_EXERCISE_ROUTES`, depending on your Health Connect SDK) and
 > `<uses-permission android:name="android.permission.health.WRITE_EXERCISE_ROUTE"/>` in your Android
 > manifest.
