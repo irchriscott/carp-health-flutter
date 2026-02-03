@@ -51,7 +51,7 @@ class HealthChange {
     HealthDataPoint? dataPoint;
     Map<String, dynamic>? rawDataPoint;
     if (rawPoint != null) {
-      rawDataPoint = Map<String, dynamic>.from(rawPoint as Map);
+      rawDataPoint = Map<String, dynamic>.from(rawPoint);
       if (dataTypeKey != null && resolvedDataType != null) {
         dataPoint = HealthDataPoint.fromHealthDataPoint(
           resolvedDataType,
