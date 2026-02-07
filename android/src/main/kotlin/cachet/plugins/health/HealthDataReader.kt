@@ -605,8 +605,14 @@ class HealthDataReader(
                     ),
                 ),
             )
+
+            // Deduplicate distance records based on startTime and endTime, keeping the one with highest distance
+            val uniqueDistanceRecords = distanceRequest.records
+                .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
+                .map { entry -> entry.value.maxByOrNull { it.distance.inMeters } ?: entry.value.first() }
+
             var totalDistance = 0.0
-            for (distanceRec in distanceRequest.records) {
+            for (distanceRec in uniqueDistanceRecords) {
                 totalDistance += distanceRec.distance.inMeters
             }
 
@@ -620,8 +626,14 @@ class HealthDataReader(
                     ),
                 ),
             )
+
+            // Deduplicate energy burned records based on startTime and endTime, keeping the one with highest calories
+            val uniqueEnergyBurnedRecords = energyBurnedRequest.records
+                .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
+                .map { entry -> entry.value.maxByOrNull { it.energy.inKilocalories } ?: entry.value.first() }
+
             var totalEnergyBurned = 0.0
-            for (energyBurnedRec in energyBurnedRequest.records) {
+            for (energyBurnedRec in uniqueEnergyBurnedRecords) {
                 totalEnergyBurned += energyBurnedRec.energy.inKilocalories
             }
 
@@ -635,8 +647,14 @@ class HealthDataReader(
                     ),
                 ),
             )
+            
+            // Deduplicate steps records based on startTime and endTime, keeping the one with highest step count
+            val uniqueStepRecords = stepRequest.records
+                .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
+                .map { entry -> entry.value.maxByOrNull { it.count } ?: entry.value.first() }
+
             var totalSteps = 0.0
-            for (stepRec in stepRequest.records) {
+            for (stepRec in uniqueStepRecords) {
                 totalSteps += stepRec.count
             }
 
