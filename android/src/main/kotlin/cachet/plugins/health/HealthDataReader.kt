@@ -606,18 +606,23 @@ class HealthDataReader(
                 ),
             )
 
-            // Deduplicate distance records based on startTime and endTime, keeping the one with highest distance
-            val uniqueDistanceRecords = distanceRequest.records
-                .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
-                .map { entry -> entry.value.maxByOrNull { it.distance.inMeters } ?: entry.value.first() }
+            val fitbitPackageName = "com.fitbit.FitbitMobile"
 
-            Log.i("FLUTTER_HEALTH", "Unique distance records: $uniqueDistanceRecords")
+			// Deduplicate distance records based on startTime and endTime, keeping the one with highest distance
+			val uniqueDistanceRecords = distanceRequest.records
+				.groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
+				.map { entry -> entry.value.maxByOrNull { it.distance.inMeters } ?: entry.value.first() }
 
-            var totalDistance = 0.0
-            for (distanceRec in uniqueDistanceRecords) {
-                totalDistance += distanceRec.distance.inMeters
-            }
+			val fitbitDistanceRecords = uniqueDistanceRecords.filter { it.metadata.dataOrigin.packageName == fitbitPackageName }
+					.sumOf { it.distance.inMeters }
+			val otherDistanceRecord = uniqueDistanceRecords.filter { it.metadata.dataOrigin.packageName != fitbitPackageName }
+					.sumOf { it.distance.inMeters }
 
+			val totalDistance = when (fitbitDistanceRecords > 0) {
+				true -> fitbitDistanceRecords
+				false -> otherDistanceRecord
+			}
+			
             // Get energy burned data
             val energyBurnedRequest = healthConnectClient.readRecords(
                 ReadRecordsRequest(
@@ -630,16 +635,16 @@ class HealthDataReader(
             )
 
             // Deduplicate energy burned records based on startTime and endTime, keeping the one with highest calories
-            val uniqueEnergyBurnedRecords = energyBurnedRequest.records
-                .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
-                .map { entry -> entry.value.maxByOrNull { it.energy.inKilocalories } ?: entry.value.first() }
+			val uniqueEnergyBurnedRecords = energyBurnedRequest.records
+				.groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
+				.map { entry -> entry.value.maxByOrNull { it.energy.inKilocalories } ?: entry.value.first() }
 
-            Log.i("FLUTTER_HEALTH", "Unique energy burned records: $uniqueEnergyBurnedRecords")
+			val fitbitEnergyBurnedRecords = uniqueEnergyBurnedRecords.filter { it.metadata.dataOrigin.packageName == fitbitPackageName }
+				.sumOf { it.energy.inKilocalories }
+			val otherEnergyBurnedRecord = uniqueEnergyBurnedRecords.filter { it.metadata.dataOrigin .packageName != fitbitPackageName }
+				.sumOf { it.energy.inKilocalories}
 
-            var totalEnergyBurned = 0.0
-            for (energyBurnedRec in uniqueEnergyBurnedRecords) {
-                totalEnergyBurned += energyBurnedRec.energy.inKilocalories
-            }
+			val totalEnergyBurned = fitbitEnergyBurnedRecords + otherEnergyBurnedRecord
 
             // Get steps data
             val stepRequest = healthConnectClient.readRecords(
@@ -652,17 +657,20 @@ class HealthDataReader(
                 ),
             )
             
-            // Deduplicate steps records based on startTime and endTime, keeping the one with highest step count
-            val uniqueStepRecords = stepRequest.records
-                .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
-                .map { entry -> entry.value.maxByOrNull { it.count } ?: entry.value.first() }
+			// Deduplicate steps records based on startTime and endTime, keeping the one with highest step count
+			val uniqueStepRecords = stepRequest.records
+				.groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
+				.map { entry -> entry.value.maxByOrNull { it.count } ?: entry.value.first() }
 
-            Log.i("FLUTTER_HEALTH", "Unique step records: $uniqueStepRecords")
+			val fitbitStepsRecord = uniqueStepRecords.filter { it.metadata.dataOrigin.packageName == fitbitPackageName }
+				.sumOf { it.count }.toDouble()
+			val otherStepsRecord = uniqueStepRecords.filter { it.metadata.dataOrigin.packageName != fitbitPackageName }
+				.sumOf { it.count }.toDouble()
 
-            var totalSteps = 0.0
-            for (stepRec in uniqueStepRecords) {
-                totalSteps += stepRec.count
-            }
+			val totalSteps = when (fitbitStepsRecord > 0) {
+				true -> fitbitStepsRecord
+				false -> otherStepsRecord
+			}
 
             // Add final datapoint
             healthConnectData.add(
