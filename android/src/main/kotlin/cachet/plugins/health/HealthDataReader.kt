@@ -611,7 +611,7 @@ class HealthDataReader(
                 .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
                 .map { entry -> entry.value.maxByOrNull { it.distance.inMeters } ?: entry.value.first() }
 
-            Log.i(TAG, "Unique distance records: $uniqueDistanceRecords")
+            Log.i("FLUTTER_HEALTH", "Unique distance records: $uniqueDistanceRecords")
 
             var totalDistance = 0.0
             for (distanceRec in uniqueDistanceRecords) {
@@ -634,7 +634,7 @@ class HealthDataReader(
                 .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
                 .map { entry -> entry.value.maxByOrNull { it.energy.inKilocalories } ?: entry.value.first() }
 
-            Log.i(TAG, "Unique energy burned records: $uniqueEnergyBurnedRecords")
+            Log.i("FLUTTER_HEALTH", "Unique energy burned records: $uniqueEnergyBurnedRecords")
 
             var totalEnergyBurned = 0.0
             for (energyBurnedRec in uniqueEnergyBurnedRecords) {
@@ -657,7 +657,7 @@ class HealthDataReader(
                 .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
                 .map { entry -> entry.value.maxByOrNull { it.count } ?: entry.value.first() }
 
-            Log.i(TAG, "Unique step records: $uniqueStepRecords")
+            Log.i("FLUTTER_HEALTH", "Unique step records: $uniqueStepRecords")
 
             var totalSteps = 0.0
             for (stepRec in uniqueStepRecords) {
