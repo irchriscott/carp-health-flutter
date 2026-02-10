@@ -613,14 +613,18 @@ class HealthDataReader(
 				.groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
 				.map { entry -> entry.value.maxByOrNull { it.distance.inMeters } ?: entry.value.first() }
 
-			val fitbitDistanceRecords = uniqueDistanceRecords.filter { it.metadata.dataOrigin.packageName == fitbitPackageName }
-					.sumOf { it.distance.inMeters }
-			val otherDistanceRecord = uniqueDistanceRecords.filter { it.metadata.dataOrigin.packageName != fitbitPackageName }
-					.sumOf { it.distance.inMeters }
+			// Group distance records by packageName and sum for each package
+			val distanceByPackage = uniqueDistanceRecords
+				.groupBy { it.metadata.dataOrigin.packageName }
+				.mapValues { entry ->
+					entry.value.sumOf { it.distance.inMeters }
+				}
 
-			val totalDistance = when (fitbitDistanceRecords > 0) {
-				true -> fitbitDistanceRecords
-				false -> otherDistanceRecord
+			// Check if Fitbit data exists, otherwise use the package with highest sum
+			val totalDistance = if (distanceByPackage.containsKey(fitbitPackageName)) {
+				distanceByPackage[fitbitPackageName] ?: 0.0
+			} else {
+				distanceByPackage.values.maxOrNull() ?: 0.0
 			}
 			
             // Get energy burned data
@@ -662,15 +666,19 @@ class HealthDataReader(
 				.groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
 				.map { entry -> entry.value.maxByOrNull { it.count } ?: entry.value.first() }
 
-			val fitbitStepsRecord = uniqueStepRecords.filter { it.metadata.dataOrigin.packageName == fitbitPackageName }
-				.sumOf { it.count }.toDouble()
-			val otherStepsRecord = uniqueStepRecords.filter { it.metadata.dataOrigin.packageName != fitbitPackageName }
-				.sumOf { it.count }.toDouble()
+			// Group distance records by packageName and sum for each package
+			val stepsByPackage = uniqueStepRecords
+				.groupBy { it.metadata.dataOrigin.packageName }
+				.mapValues { entry ->
+					entry.value.sumOf { it.count }
+				}
 
-			val totalSteps = when (fitbitStepsRecord > 0) {
-				true -> fitbitStepsRecord
-				false -> otherStepsRecord
-			}
+			// Check if Fitbit data exists, otherwise use the package with highest sum
+			val totalSteps = if (stepsByPackage.containsKey(fitbitPackageName)) {
+				stepsByPackage[fitbitPackageName] ?: 0
+			} else {
+				stepsByPackage.values.maxOrNull() ?: 0
+			}.toDouble()
 
             // Add final datapoint
             healthConnectData.add(
