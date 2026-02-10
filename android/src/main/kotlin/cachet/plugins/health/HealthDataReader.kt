@@ -611,6 +611,8 @@ class HealthDataReader(
                 .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
                 .map { entry -> entry.value.maxByOrNull { it.distance.inMeters } ?: entry.value.first() }
 
+            Log.i(TAG, "Unique distance records: $uniqueDistanceRecords")
+
             var totalDistance = 0.0
             for (distanceRec in uniqueDistanceRecords) {
                 totalDistance += distanceRec.distance.inMeters
@@ -632,6 +634,8 @@ class HealthDataReader(
                 .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
                 .map { entry -> entry.value.maxByOrNull { it.energy.inKilocalories } ?: entry.value.first() }
 
+            Log.i(TAG, "Unique energy burned records: $uniqueEnergyBurnedRecords")
+
             var totalEnergyBurned = 0.0
             for (energyBurnedRec in uniqueEnergyBurnedRecords) {
                 totalEnergyBurned += energyBurnedRec.energy.inKilocalories
@@ -652,6 +656,8 @@ class HealthDataReader(
             val uniqueStepRecords = stepRequest.records
                 .groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
                 .map { entry -> entry.value.maxByOrNull { it.count } ?: entry.value.first() }
+
+            Log.i(TAG, "Unique step records: $uniqueStepRecords")
 
             var totalSteps = 0.0
             for (stepRec in uniqueStepRecords) {
