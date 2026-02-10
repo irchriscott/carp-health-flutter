@@ -614,7 +614,7 @@ class HealthDataReader(
 				.map { entry -> entry.value.maxByOrNull { it.distance.inMeters } ?: entry.value.first() }
 
 			// Group distance records by packageName and sum for each package
-			val distanceByPackage = uniqueDistanceRecords
+			val distanceByPackage = distanceRequest.records
 				.groupBy { it.metadata.dataOrigin.packageName }
 				.mapValues { entry ->
 					entry.value.sumOf { it.distance.inMeters }
@@ -643,12 +643,7 @@ class HealthDataReader(
 				.groupBy { Pair(it.startTime.toEpochMilli(), it.endTime.toEpochMilli()) }
 				.map { entry -> entry.value.maxByOrNull { it.energy.inKilocalories } ?: entry.value.first() }
 
-			val fitbitEnergyBurnedRecords = uniqueEnergyBurnedRecords.filter { it.metadata.dataOrigin.packageName == fitbitPackageName }
-				.sumOf { it.energy.inKilocalories }
-			val otherEnergyBurnedRecord = uniqueEnergyBurnedRecords.filter { it.metadata.dataOrigin .packageName != fitbitPackageName }
-				.sumOf { it.energy.inKilocalories}
-
-			val totalEnergyBurned = fitbitEnergyBurnedRecords + otherEnergyBurnedRecord
+			val totalEnergyBurned = energyBurnedRequest.records.sumOf { it.energy.inKilocalories }
 
             // Get steps data
             val stepRequest = healthConnectClient.readRecords(
@@ -667,7 +662,7 @@ class HealthDataReader(
 				.map { entry -> entry.value.maxByOrNull { it.count } ?: entry.value.first() }
 
 			// Group distance records by packageName and sum for each package
-			val stepsByPackage = uniqueStepRecords
+			val stepsByPackage = stepRequest.records
 				.groupBy { it.metadata.dataOrigin.packageName }
 				.mapValues { entry ->
 					entry.value.sumOf { it.count }
